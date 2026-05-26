@@ -460,6 +460,7 @@
         }
 
         .hint-text {
+            width: 400px;
             font-size: 12px;
             color: #ff3b30;
             font-weight: bold;
@@ -563,7 +564,7 @@
                 <span class="badge-dot"></span>
                 XSS Training Environment
             </div>
-            <h1>&lt;<span class="accent">Reflected XSS -Template Literal</span> / Labs&gt;</h1>
+            <h1>&lt;<span class="accent">Filter Bypass — Tags</span> / Labs&gt;</h1>
             <p>// Cross-Site Scripting · Hands-on Practice</p>
         </header>
 
@@ -593,7 +594,7 @@
                 <div class="hint-tooltip">
                     <div class="hint-title"><span class="hint-dot"></span> hint</div>
                     <div class="hint-text">payload:<br>
-                        <code>&#x24;&#x7b;&#x61;&#x6c;&#x65;&#x72;&#x74;&#x28;&#x31;&#x29;&#x7d;</code>
+                        <code>&#x3c;&#x3e;&#x3c;&#x69;&#x6d;&#x67;&#x20;&#x73;&#x72;&#x63;&#x3d;&#x61;&#x20;&#x6f;&#x6e;&#x65;&#x72;&#x72;&#x6f;&#x72;&#x3d;&#x61;&#x6c;&#x65;&#x72;&#x74;&#x28;&#x29;&#x3e;</code>
                     </div>
                 </div>
             </div>
@@ -621,12 +622,15 @@
         const form = document.querySelector('#form');
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            const query = new FormData(form).get('q')
+            let query = new FormData(form).get('q')
             const resultBox = document.getElementById('result-box');
             const resultQuery = document.getElementById('result-query');
 
             if (query) {
-                eval(`resultQuery.innerHTML = \`${query}\``);
+                if (query.includes('<') || query.includes('>')) {
+                    query = query.replace('<', '&lt;').replace('>', '&gt;')
+                }
+                resultQuery.innerHTML = query;
                 resultBox.classList.add('visible');
             }
         })

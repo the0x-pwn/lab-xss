@@ -404,9 +404,8 @@
         labs.forEach((lab, i) => {
             const card = document.createElement('a');
             card.className = 'lab-card';
-            card.href = 'lab-' + (i + 1) + '/';
+            card.href = (i === 2) ? 'lab-3/#' : 'lab-' + (i + 1) + '/';
             card.style.cssText = `--accent:${lab.accent};--accent-dim:${lab.accentDim};--accent-bg:${lab.accentBg};--diff-color:${diffColors[lab.diff]}`;
-
             card.innerHTML = `
       <div class="lab-num">Lab ${String(i + 1).padStart(2, '0')}</div>
       <div class="lab-icon-wrap">

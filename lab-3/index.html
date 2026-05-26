@@ -618,14 +618,23 @@
 
     <script>
         const form = document.querySelector('#form');
-        form.addEventListener('submit', (e) => {
-            e.preventDefault()
-            const input = document.getElementById('q');
-            const query = new FormData(form).get('q')
-            const resultBox = document.getElementById('result-box');
-            const resultQuery = document.getElementById('result-query');
+        const resultBox = document.getElementById('result-box');
+        const resultQuery = document.getElementById('result-query');
 
+        window.addEventListener('DOMContentLoaded', () => {
+            const hash = decodeURIComponent(location.hash.slice(1));
+            if (hash) {
+                document.getElementById('q').value = hash;
+                resultQuery.innerHTML = hash;
+                resultBox.classList.add('visible');
+            }
+        });
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const query = document.getElementById('q').value;
             if (query) {
+                location.hash = encodeURIComponent(query);
                 resultQuery.innerHTML = query;
                 resultBox.classList.add('visible');
             }
