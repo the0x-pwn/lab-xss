@@ -626,7 +626,7 @@
             const resultQuery = document.getElementById('result-query');
 
             if (query) {
-                eval(`resultQuery.setHTML = \`${query}\``);
+                eval(`resultQuery.textContent = \`${query}\``);
                 resultBox.classList.add('visible');
             }
         })
