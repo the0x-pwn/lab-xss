@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XSS Labs Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #0d1117;
+            min-height: 100vh;
+            font-family: 'Space Mono', monospace;
+            position: relative;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0, 255, 136, 0.03) 39px, rgba(0, 255, 136, 0.03) 40px),
+                repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0, 255, 136, 0.03) 39px, rgba(0, 255, 136, 0.03) 40px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+            max-width: 980px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 4rem;
+            flex: 1;
+        }
+
+        /* ── Header ── */
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            border-radius: 999px;
+            padding: 6px 18px;
+            font-size: 11px;
+            color: #00ff88;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 1.25rem;
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #00ff88;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.15;
+            }
+        }
+
+        .header h1 {
+            font-family: 'Fira Code', monospace;
+            font-size: 2.4rem;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: -1px;
+            line-height: 1.2;
+            margin-bottom: 0.6rem;
+        }
+
+        .header h1 .accent {
+            color: #00ff88;
+        }
+
+        .header p {
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            color: #484f58;
+            letter-spacing: 1.5px;
+        }
+
+        /* ── Stats bar / Search ── */
+        .stats-bar {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 2.5rem;
+        }
+
+        /* ── Search Form ── */
+        .search-wrapper {
+            width: 100%;
+            max-width: 520px;
+        }
+
+        #form {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        #form:focus-within {
+            border-color: rgba(0, 255, 136, 0.5);
+            box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.08);
+        }
+
+        .search-prefix {
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            color: #00ff88;
+            padding: 0 10px 0 14px;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        #q {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            color: #e6edf3;
+            padding: 11px 6px 11px 0;
+            caret-color: #00ff88;
+        }
+
+        #q::placeholder {
+            color: #3d444d;
+        }
+
+        #form input[type="submit"] {
+            background: rgba(0, 255, 136, 0.1);
+            border: none;
+            border-left: 1px solid #30363d;
+            color: #00ff88;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 11px 16px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            white-space: nowrap;
+        }
+
+        #form input[type="submit"]:hover {
+            background: rgba(0, 255, 136, 0.2);
+            color: #fff;
+        }
+
+        /* ── Search Result ── */
+        .search-result {
+            display: none;
+            margin-top: 10px;
+            padding: 10px 14px;
+            background: rgba(255, 59, 48, 0.06);
+            border: 1px solid rgba(255, 59, 48, 0.2);
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            color: #484f58;
+            line-height: 1.6;
+        }
+
+        .search-result.visible {
+            display: block;
+        }
+
+        .search-result .query-text {
+            color: #ff3b30;
+            font-weight: 500;
+        }
+
+        .search-result .result-line {
+            color: #484f58;
+        }
+
+        .search-result .result-count {
+            color: #3d444d;
+            font-size: 10px;
+            margin-top: 4px;
+            letter-spacing: 1px;
+        }
+
+        /* ── Grid ── */
+        .labs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        /* ── Lab Card ── */
+        .lab-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 14px;
+            padding: 1.35rem 1.15rem 1.15rem;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: block;
+            transition: border-color 0.2s, transform 0.2s, background 0.2s;
+        }
+
+        .lab-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .lab-card:hover {
+            border-color: var(--accent-dim);
+            background: #1c2128;
+            transform: translateY(-3px);
+        }
+
+        .lab-card:hover::after {
+            opacity: 1;
+        }
+
+        .lab-num {
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            color: #3d444d;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 0.85rem;
+        }
+
+        .lab-icon-wrap {
+            width: 42px;
+            height: 42px;
+            border-radius: 11px;
+            background: var(--accent-bg);
+            border: 1px solid var(--accent-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.9rem;
+        }
+
+        .lab-icon-wrap i {
+            font-size: 21px;
+            color: var(--accent);
+        }
+
+        .lab-title {
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            font-weight: 500;
+            color: #e6edf3;
+            line-height: 1.5;
+            margin-bottom: 0.55rem;
+        }
+
+        .lab-tag {
+            display: inline-block;
+            font-size: 10px;
+            font-family: 'Fira Code', monospace;
+            color: var(--accent);
+            background: var(--accent-bg);
+            border: 1px solid var(--accent-dim);
+            border-radius: 4px;
+            padding: 2px 8px;
+            margin-bottom: 0.85rem;
+        }
+
+        .lab-diff {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .diff-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--diff-color);
+        }
+
+        .diff-label {
+            font-size: 10px;
+            font-family: 'Fira Code', monospace;
+            color: #484f58;
+        }
+
+        .lab-arrow {
+            position: absolute;
+            bottom: 1.1rem;
+            right: 1.1rem;
+            font-size: 15px;
+            color: #3d444d;
+            transition: color 0.2s, transform 0.2s;
+        }
+
+        .lab-card:hover .lab-arrow {
+            color: var(--accent);
+            transform: translate(2px, -2px);
+        }
+
+        /* ── Legend ── */
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: #6e7681;
+        }
+
+        .legend-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        /* ── Hint ── */
+        .hint-wrapper {
+            position: relative;
+            display: inline-flex;
+        }
+
+        .hint-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            border-radius: 8px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: #00ff88;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .hint-btn:hover {
+            background: rgba(0, 255, 136, 0.15);
+            border-color: rgba(0, 255, 136, 0.5);
+            box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.08);
+        }
+
+        .hint-tooltip {
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #161b22;
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            border-radius: 10px;
+            padding: 12px 16px;
+            min-width: 240px;
+            max-width: 300px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: #484f58;
+            line-height: 1.7;
+            z-index: 99;
+        }
+
+        .hint-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: rgba(0, 255, 136, 0.25);
+        }
+
+        .hint-tooltip::before {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #161b22;
+            z-index: 1;
+        }
+
+        .hint-title {
+            color: #00ff88;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hint-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #00ff88;
+            display: inline-block;
+        }
+
+        .hint-text {
+            width: 400px;
+            font-size: 11px;
+            color: #ff3b30;
+            font-weight: bold;
+        }
+
+        .hint-wrapper:hover .hint-tooltip {
+            opacity: 1;
+        }
+
+        /* ── Footer ── */
+        .footer {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            margin-top: auto;
+            padding: 2rem 1.5rem 1.5rem;
+            border-top: 1px solid rgba(0, 255, 136, 0.08);
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            color: #3d444d;
+            letter-spacing: 1.5px;
+            text-align: center;
+        }
+
+        .footer-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 980px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .footer-divider::before,
+        .footer-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.12), transparent);
+        }
+
+        .footer-divider span {
+            color: rgba(0, 255, 136, 0.35);
+            letter-spacing: 3px;
+            font-size: 10px;
+        }
+
+
+        .footer-link {
+            color: #3d444d;
+            text-decoration: none;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            font-size: 10px;
+            transition: color 0.2s;
+        }
+
+        .footer-link:hover {
+            color: #00ff88;
+        }
+
+        .footer-copy {
+            line-height: 2.2;
+        }
+
+        .footer-copy .accent {
+            color: #00ff88;
+        }
+
+        .footer-copy .heart {
+            color: #ff3b30;
+        }
+
+        .footer-copy .dim {
+            color: #2a2f38;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.7rem;
+            }
+
+            .labs-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 12px;
+            }
+
+            .footer-links {
+                gap: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+
+        <!-- Header -->
+        <header class="header">
+            <div class="header-badge">
+                <span class="badge-dot"></span>
+                XSS Training Environment
+            </div>
+            <h1>&lt;<span class="accent">Reflected XSS with HTML Tag Filtering</span> / Labs&gt;</h1>
+            <p>// Cross-Site Scripting · Hands-on Practice</p>
+        </header>
+
+        <!-- Search -->
+        <div class="stats-bar">
+            <div class="search-wrapper">
+                <form id="form" method="get">
+                    <span class="search-prefix">$&gt;</span>
+                    <input type="text" name="q" id="q" placeholder="search labs..." autocomplete="off" />
+                    <input type="submit" value="// RUN" id="run" />
+                </form>
+                <div class="search-result" id="result-box">
+                    <div class="result-line">
+                        No results found for: <span class="query-text" id="result-query"></span>
+                    </div>
+                    <div class="result-count">0 MATCHES · 0ms</div>
+                </div>
+            </div>
+        </div>
+        <!-- Hint -->
+        <div style="display:flex; justify-content:center; margin-top: 1.5rem;">
+            <div class="hint-wrapper">
+                <button class="hint-btn">
+                    <i class="ti ti-bulb" style="font-size:14px;" aria-hidden="true"></i>
+                    // Hint
+                </button>
+                <div class="hint-tooltip">
+                    <div class="hint-title"><span class="hint-dot"></span> hint</div>
+                    <div class="hint-text">payload:<br>
+                        <code>&#x3c;&#x78;&#x20;&#x61;&#x75;&#x74;&#x6f;&#x66;&#x6f;&#x63;&#x75;&#x73;&#x20;&#x74;&#x61;&#x62;&#x69;&#x6e;&#x64;&#x65;&#x78;&#x3d;&#x30;&#x20;&#x6f;&#x6e;&#x66;&#x6f;&#x63;&#x75;&#x73;&#x3d;&#x61;&#x6c;&#x65;&#x72;&#x74;&#x28;&#x29;&#x3e;</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-copy">
+            <span class="accent">©</span> 2026 &nbsp;<span class="dim">·</span>&nbsp; Made with <span
+                class="heart">♥</span> by <span class="accent">the0x</span>
+            <br>
+            <span class="accent">//</span> Educational purposes only &nbsp;<span class="dim">·</span>&nbsp; Use
+            responsibly
+            <br>
+            <a href="https://www.facebook.com/AbuFah3d94" target="_blank" class="footer-link"
+                style="margin-top: 6px; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="ti ti-brand-facebook" style="font-size: 13px;"></i> // Facebook
+            </a>
+        </div>
+    </footer>
+
+    <script>
+        const input = document.getElementById('q');
+        const query = new URLSearchParams(location.search).get('q');
+        const resultBox = document.getElementById('result-box');
+        const resultQuery = document.getElementById('result-query');
+
+        const blockTag = ['a', 'abbr', 'acronym', 'address', 'animate', 'animatemotion',
+            'animatetransform', 'applet', 'area', 'article', 'aside', 'audio',
+            'b', 'base', 'basefont', 'bdi', 'bdo', 'bgsound', 'big', 'blink',
+            'blockquote', 'body', 'br', 'button', 'canvas', 'caption', 'center',
+            'cite', 'code', 'col', 'colgroup', 'command', 'content', 'custom tags',
+            'data', 'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir',
+            'discard', 'div', 'dl', 'dt', 'element', 'em', 'embed', 'fieldset',
+            'figcaption', 'figure', 'font', 'footer', 'form', 'frame', 'frameset',
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header', 'hgroup', 'hr',
+            'html', 'i', 'iframe', 'image', 'image2', 'image3', 'img', 'img2',
+            'input', 'input2', 'input3', 'input4', 'ins', 'isindex', 'kbd', 'keygen',
+            'label', 'legend', 'li', 'link', 'listing', 'main', 'map', 'mark',
+            'marquee', 'menu', 'menuitem', 'meta', 'meter', 'multicol', 'nav',
+            'nextid', 'nobr', 'noembed', 'noframes', 'noscript', 'object', 'ol',
+            'optgroup', 'option', 'output', 'p', 'param', 'portal', 'picture',
+            'plaintext', 'pre', 'progress', 'q', 'rb', 'rp', 'rt', 'rtc', 'ruby',
+            's', 'samp', 'script', 'search', 'section', 'select', 'set', 'shadow',
+            'slot', 'small', 'source', 'spacer', 'span', 'strike', 'strong',
+            'style', 'sub', 'summary', 'sup', 'svg', 'table', 'tbody', 'td',
+            'template', 'textarea', 'tfoot', 'th', 'thead', 'time', 'title',
+            'tr', 'track', 'tt', 'u', 'ul', 'var', 'video', 'wbr', 'xmp'
+        ]
+
+        function extractTag(str) {
+            const match = str.match(/<\/?\s*([a-z0-9]+)/i);
+            return match ? match[1].toLowerCase() : null;
+        }
+
+        if (query) {
+
+            const tag = extractTag(query);
+
+            if (tag && blockTag.includes(tag)) {
+                resultQuery.textContent = `❌ The tag <${tag}> is not allowed`;
+            }
+            else {
+                resultQuery.innerHTML = query;
+            }
+            resultBox.classList.add('visible');
+        }
+    </script>
+</body>
+
+</html>
