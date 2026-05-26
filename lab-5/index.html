@@ -991,7 +991,6 @@
             content.style.display = 'none';
             error.style.display = 'none';
 
-            // Simulate async data loading for terminal feel
             setTimeout(function () {
                 var data = historyData[countryKey];
                 loading.style.display = 'none';
@@ -1039,7 +1038,6 @@
             document.getElementById('form').addEventListener('submit', function (e) {
                 var sel = document.getElementById('country');
                 if (sel && historyData[sel.value]) {
-                    // Let the form navigate normally, history renders on load
                 }
             });
         });
