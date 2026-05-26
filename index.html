@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XSS Labs Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #0d1117;
+            min-height: 100vh;
+            font-family: 'Space Mono', monospace;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0, 255, 136, 0.03) 39px, rgba(0, 255, 136, 0.03) 40px),
+                repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0, 255, 136, 0.03) 39px, rgba(0, 255, 136, 0.03) 40px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 4rem;
+        }
+
+        /* ── Header ── */
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            border-radius: 999px;
+            padding: 6px 18px;
+            font-size: 11px;
+            color: #00ff88;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 1.25rem;
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #00ff88;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.15;
+            }
+        }
+
+        .header h1 {
+            font-family: 'Fira Code', monospace;
+            font-size: 2.4rem;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: -1px;
+            line-height: 1.2;
+            margin-bottom: 0.6rem;
+        }
+
+        .header h1 .accent {
+            color: #00ff88;
+        }
+
+        .header p {
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            color: #484f58;
+            letter-spacing: 1.5px;
+        }
+
+        /* ── Stats bar ── */
+        .stats-bar {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-chip {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 9px 18px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-size: 12px;
+            color: #8b949e;
+            font-family: 'Space Mono', monospace;
+        }
+
+        .stat-chip i {
+            font-size: 15px;
+        }
+
+        .stat-chip strong {
+            color: #e6edf3;
+            font-weight: 500;
+        }
+
+        /* ── Grid ── */
+        .labs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        /* ── Lab Card ── */
+        .lab-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 14px;
+            padding: 1.35rem 1.15rem 1.15rem;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: block;
+            transition: border-color 0.2s, transform 0.2s, background 0.2s;
+        }
+
+        .lab-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .lab-card:hover {
+            border-color: var(--accent-dim);
+            background: #1c2128;
+            transform: translateY(-3px);
+        }
+
+        .lab-card:hover::after {
+            opacity: 1;
+        }
+
+        .lab-num {
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            color: #3d444d;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 0.85rem;
+        }
+
+        .lab-icon-wrap {
+            width: 42px;
+            height: 42px;
+            border-radius: 11px;
+            background: var(--accent-bg);
+            border: 1px solid var(--accent-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.9rem;
+        }
+
+        .lab-icon-wrap i {
+            font-size: 21px;
+            color: var(--accent);
+        }
+
+        .lab-title {
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            font-weight: 500;
+            color: #e6edf3;
+            line-height: 1.5;
+            margin-bottom: 0.55rem;
+        }
+
+        .lab-tag {
+            display: inline-block;
+            font-size: 10px;
+            font-family: 'Fira Code', monospace;
+            color: var(--accent);
+            background: var(--accent-bg);
+            border: 1px solid var(--accent-dim);
+            border-radius: 4px;
+            padding: 2px 8px;
+            margin-bottom: 0.85rem;
+        }
+
+        .lab-diff {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .diff-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--diff-color);
+        }
+
+        .diff-label {
+            font-size: 10px;
+            font-family: 'Fira Code', monospace;
+            color: #484f58;
+        }
+
+        .lab-arrow {
+            position: absolute;
+            bottom: 1.1rem;
+            right: 1.1rem;
+            font-size: 15px;
+            color: #3d444d;
+            transition: color 0.2s, transform 0.2s;
+        }
+
+        .lab-card:hover .lab-arrow {
+            color: var(--accent);
+            transform: translate(2px, -2px);
+        }
+
+        /* ── Legend ── */
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: #6e7681;
+        }
+
+        .legend-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        /* ── Footer ── */
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            color: #3d444d;
+            letter-spacing: 1.5px;
+        }
+
+        .footer span {
+            color: #00ff88;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.7rem;
+            }
+
+            .labs-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 12px;
+            }
+        }
+
+        .footer-link {
+            color: #3d444d;
+            text-decoration: none;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            font-size: 10px;
+            transition: color 0.2s;
+        }
+
+        .footer-link:hover {
+            color: #00ff88;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+
+        <!-- Header -->
+        <header class="header">
+            <div class="header-badge">
+                <span class="badge-dot"></span>
+                XSS Training Environment
+            </div>
+            <h1>&lt;<span class="accent">XSS</span> / Labs&gt;</h1>
+            <p>// Cross-Site Scripting · Hands-on Practice</p>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats-bar">
+            <div class="stat-chip">
+                <i class="ti ti-list-check"></i>
+                <span><strong>10</strong> Labs total</span>
+            </div>
+            <div class="stat-chip">
+                <i class="ti ti-flame"></i>
+                <span><strong>3</strong> Difficulty levels</span>
+            </div>
+            <div class="stat-chip">
+                <i class="ti ti-shield-x"></i>
+                <span>XSS Attack vectors</span>
+            </div>
+        </div>
+
+        <!-- Labs Grid -->
+        <div class="labs-grid" id="labs-grid"></div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item"><span class="legend-dot" style="background:#00ff88"></span> Easy</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#e3a237"></span> Medium</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#ff5c7a"></span> Hard</div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-copy">
+                <span class="accent">©</span> 2026 &nbsp;<span class="dim">·</span>&nbsp; Made with <span
+                    class="heart">♥</span> by <span class="accent">the0x</span>
+                <br>
+                <span class="accent">//</span> Educational purposes only &nbsp;<span class="dim">·</span>&nbsp; Use
+                responsibly
+                <br>
+                <a href="https://www.facebook.com/AbuFah3d94" target="_blank" class="footer-link"
+                    style="margin-top: 6px; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="ti ti-brand-facebook" style="font-size: 13px;"></i> // Facebook
+                </a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const labs = [
+            { icon: 'ti-code', title: 'Reflected XSS — Basics', tag: 'reflected', diff: 'easy', accent: '#00ff88', accentDim: 'rgba(0,255,136,0.22)', accentBg: 'rgba(0,255,136,0.07)' },
+            { icon: 'ti-database', title: 'Reflected XSS  -Template Literal', tag: 'stored', diff: 'easy', accent: '#00ff88', accentDim: 'rgba(0,255,136,0.22)', accentBg: 'rgba(0,255,136,0.07)' },
+            { icon: 'ti-code-dots', title: 'DOM-Based XSS', tag: 'dom', diff: 'medium', accent: '#e3a237', accentDim: 'rgba(227,162,55,0.22)', accentBg: 'rgba(227,162,55,0.07)' },
+            { icon: 'ti-filter', title: 'Filter Bypass — Tags', tag: 'bypass', diff: 'medium', accent: '#e3a237', accentDim: 'rgba(227,162,55,0.22)', accentBg: 'rgba(227,162,55,0.07)' },
+            { icon: 'ti-lock-open', title: 'CSP Bypass Techniques', tag: 'csp', diff: 'medium', accent: '#e3a237', accentDim: 'rgba(227,162,55,0.22)', accentBg: 'rgba(227,162,55,0.07)' },
+            { icon: 'ti-cpu', title: 'Event Handler Injection', tag: 'events', diff: 'medium', accent: '#e3a237', accentDim: 'rgba(227,162,55,0.22)', accentBg: 'rgba(227,162,55,0.07)' },
+            { icon: 'ti-cookie', title: 'Cookie Theft via XSS', tag: 'cookies', diff: 'hard', accent: '#ff5c7a', accentDim: 'rgba(255,92,122,0.22)', accentBg: 'rgba(255,92,122,0.07)' },
+            { icon: 'ti-link', title: 'XSS via Href Attributes', tag: 'href', diff: 'hard', accent: '#ff5c7a', accentDim: 'rgba(255,92,122,0.22)', accentBg: 'rgba(255,92,122,0.07)' },
+            { icon: 'ti-file-code', title: 'SVG & Script Injection', tag: 'svg', diff: 'hard', accent: '#ff5c7a', accentDim: 'rgba(255,92,122,0.22)', accentBg: 'rgba(255,92,122,0.07)' },
+            { icon: 'ti-world-www', title: 'Blind XSS & Out-of-band', tag: 'blind', diff: 'hard', accent: '#ff5c7a', accentDim: 'rgba(255,92,122,0.22)', accentBg: 'rgba(255,92,122,0.07)' },
+        ];
+
+        const diffColors = { easy: '#00ff88', medium: '#e3a237', hard: '#ff5c7a' };
+        const diffLabels = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
+        const grid = document.getElementById('labs-grid');
+
+        labs.forEach((lab, i) => {
+            const card = document.createElement('a');
+            card.className = 'lab-card';
+            card.href = 'lab-' + (i + 1) + '/';
+            card.style.cssText = `--accent:${lab.accent};--accent-dim:${lab.accentDim};--accent-bg:${lab.accentBg};--diff-color:${diffColors[lab.diff]}`;
+
+            card.innerHTML = `
+      <div class="lab-num">Lab ${String(i + 1).padStart(2, '0')}</div>
+      <div class="lab-icon-wrap">
+        <i class="ti ${lab.icon}" aria-hidden="true"></i>
+      </div>
+      <div class="lab-title">${lab.title}</div>
+      <div class="lab-tag">#${lab.tag}</div>
+      <div class="lab-diff">
+        <span class="diff-dot"></span>
+        <span class="diff-label">${diffLabels[lab.diff]}</span>
+      </div>
+      <i class="ti ti-arrow-up-right lab-arrow" aria-hidden="true"></i>
+    `;
+
+            grid.appendChild(card);
+        });
+    </script>
+</body>
+
+</html>
