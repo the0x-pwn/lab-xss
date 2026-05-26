@@ -621,7 +621,7 @@
         const form = document.querySelector('#form');
         form.addEventListener('submit', (e) => {
             e.preventDefault();
-            let query = new FormData(form).get('q')
+            const query = new FormData(form).get('q')
             const resultBox = document.getElementById('result-box');
             const resultQuery = document.getElementById('result-query');
 
