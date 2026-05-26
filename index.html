@@ -385,16 +385,16 @@
 
     <script>
         const labs = [
-            { icon: 'ti-code', title: 'Reflected XSS — Basics', tag: 'reflected', diff: 'easy', accent: '#00ff88', accentDim: 'rgba(0,255,136,0.22)', accentBg: 'rgba(0,255,136,0.07)' },
-            { icon: 'ti-database', title: 'Reflected XSS  -Template Literal', tag: 'reflected', diff: 'easy', accent: '#00ff88', accentDim: 'rgba(0,255,136,0.22)', accentBg: 'rgba(0,255,136,0.07)' },
-            { icon: 'ti-code-dots', title: 'DOM-Based XSS', tag: 'dom', diff: 'easy', accent: '#00ff88', accentDim: 'rgba(0,255,136,0.22)', accentBg: 'rgba(0,255,136,0.07)' },
-            { icon: 'ti-filter', title: 'Filter Bypass — Tags', tag: 'bypass', diff: 'medium', accent: '#e3a237', accentDim: 'rgba(227,162,55,0.22)', accentBg: 'rgba(227,162,55,0.07)' },
-            { icon: 'ti-lock-open', title: 'DOM XSS in document.write', tag: 'DOM', diff: 'medium', accent: '#e3a237', accentDim: 'rgba(227,162,55,0.22)', accentBg: 'rgba(227,162,55,0.07)' },
-            { icon: 'ti-cpu', title: 'Reflected XSS with HTML Tag Filtering', tag: 'reflected', diff: 'medium', accent: '#e3a237', accentDim: 'rgba(227,162,55,0.22)', accentBg: 'rgba(227,162,55,0.07)' },
-            { icon: 'ti-cookie', title: 'Reflected XSS in a JavaScript URL with some characters blocked', tag: 'reflected', diff: 'hard', accent: '#ff5c7a', accentDim: 'rgba(255,92,122,0.22)', accentBg: 'rgba(255,92,122,0.07)' },
-            { icon: 'ti-link', title: 'XSS via Href Attributes', tag: 'href', diff: 'hard', accent: '#ff5c7a', accentDim: 'rgba(255,92,122,0.22)', accentBg: 'rgba(255,92,122,0.07)' },
-            { icon: 'ti-file-code', title: 'SVG & Script Injection', tag: 'svg', diff: 'hard', accent: '#ff5c7a', accentDim: 'rgba(255,92,122,0.22)', accentBg: 'rgba(255,92,122,0.07)' },
-            { icon: 'ti-world-www', title: 'Blind XSS & Out-of-band', tag: 'blind', diff: 'hard', accent: '#ff5c7a', accentDim: 'rgba(255,92,122,0.22)', accentBg: 'rgba(255,92,122,0.07)' },
+            { icon: 'ti-bug', title: 'Reflected XSS — Basics', tag: 'reflected', diff: 'easy', accent: '#00ff88', accentDim: 'rgba(0,255,136,0.22)', accentBg: 'rgba(0,255,136,0.07)' },
+            { icon: 'ti-braces', title: 'Reflected XSS - Template Literal', tag: 'reflected', diff: 'easy', accent: '#00ff88', accentDim: 'rgba(0,255,136,0.22)', accentBg: 'rgba(0,255,136,0.07)' },
+            { icon: 'ti-sitemap', title: 'DOM-Based XSS', tag: 'dom', diff: 'easy', accent: '#00ff88', accentDim: 'rgba(0,255,136,0.22)', accentBg: 'rgba(0,255,136,0.07)' },
+            { icon: 'ti-shield-off', title: 'Filter Bypass — Tags', tag: 'bypass', diff: 'medium', accent: '#e3a237', accentDim: 'rgba(227,162,55,0.22)', accentBg: 'rgba(227,162,55,0.07)' },
+            { icon: 'ti-pencil-code', title: 'DOM XSS in document.write', tag: 'DOM', diff: 'medium', accent: '#e3a237', accentDim: 'rgba(227,162,55,0.22)', accentBg: 'rgba(227,162,55,0.07)' },
+            { icon: 'ti-tag-off', title: 'Reflected XSS with HTML Tag Filtering', tag: 'reflected', diff: 'medium', accent: '#e3a237', accentDim: 'rgba(227,162,55,0.22)', accentBg: 'rgba(227,162,55,0.07)' },
+            { icon: 'ti-ban', title: 'Reflected XSS in a JavaScript URL with some characters blocked', tag: 'reflected', diff: 'hard', accent: '#ff5c7a', accentDim: 'rgba(255,92,122,0.22)', accentBg: 'rgba(255,92,122,0.07)' },
+            { icon: 'ti-external-link', title: 'XSS via Href Attributes', tag: 'href', diff: 'hard', accent: '#ff5c7a', accentDim: 'rgba(255,92,122,0.22)', accentBg: 'rgba(255,92,122,0.07)' },
+            { icon: 'ti-vector', title: 'SVG & Script Injection', tag: 'svg', diff: 'hard', accent: '#ff5c7a', accentDim: 'rgba(255,92,122,0.22)', accentBg: 'rgba(255,92,122,0.07)' },
+            { icon: 'ti-eye-off', title: 'Blind XSS & Out-of-band', tag: 'blind', diff: 'hard', accent: '#ff5c7a', accentDim: 'rgba(255,92,122,0.22)', accentBg: 'rgba(255,92,122,0.07)' },
         ];
 
         const diffColors = { easy: '#00ff88', medium: '#e3a237', hard: '#ff5c7a' };
