@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XSS Labs Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #0d1117;
+            min-height: 100vh;
+            font-family: 'Space Mono', monospace;
+            position: relative;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0, 255, 136, 0.03) 39px, rgba(0, 255, 136, 0.03) 40px),
+                repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0, 255, 136, 0.03) 39px, rgba(0, 255, 136, 0.03) 40px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+            max-width: 980px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 4rem;
+            flex: 1;
+        }
+
+        /* ── Header ── */
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            border-radius: 999px;
+            padding: 6px 18px;
+            font-size: 11px;
+            color: #00ff88;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 1.25rem;
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #00ff88;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.15;
+            }
+        }
+
+        .header h1 {
+            font-family: 'Fira Code', monospace;
+            font-size: 2.4rem;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: -1px;
+            line-height: 1.2;
+            margin-bottom: 0.6rem;
+        }
+
+        .header h1 .accent {
+            color: #00ff88;
+        }
+
+        .header p {
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            color: #484f58;
+            letter-spacing: 1.5px;
+        }
+
+        /* ── Stats bar / Search ── */
+        .stats-bar {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 2.5rem;
+        }
+
+        /* ── Search Form ── */
+        .search-wrapper {
+            width: 100%;
+            max-width: 520px;
+        }
+
+        #form {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        #form:focus-within {
+            border-color: rgba(0, 255, 136, 0.5);
+            box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.08);
+        }
+
+        .search-prefix {
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            color: #00ff88;
+            padding: 0 10px 0 14px;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        #country {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            color: #e6edf3;
+            padding: 11px 6px 11px 0;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        #country option {
+            background: #161b22;
+            color: #e6edf3;
+            font-family: 'Fira Code', monospace;
+        }
+
+        #country option:first-child {
+            color: #3d444d;
+        }
+
+        #form input[type="submit"] {
+            background: rgba(0, 255, 136, 0.1);
+            border: none;
+            border-left: 1px solid #30363d;
+            color: #00ff88;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            padding: 11px 16px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            white-space: nowrap;
+        }
+
+        #form input[type="submit"]:hover {
+            background: rgba(0, 255, 136, 0.2);
+            color: #fff;
+        }
+
+        /* ── Country Result Box ── */
+        .country-result {
+            display: none;
+            margin-top: 14px;
+            padding: 18px 20px;
+            background: rgba(0, 255, 136, 0.04);
+            border: 1px solid rgba(0, 255, 136, 0.15);
+            border-radius: 10px;
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            color: #484f58;
+            line-height: 1.8;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .country-result.visible {
+            display: block;
+        }
+
+        .country-result-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+        }
+
+        .country-flag {
+            font-size: 22px;
+            line-height: 1;
+        }
+
+        .country-name {
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            font-weight: 600;
+            color: #00ff88;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .country-slug {
+            font-size: 10px;
+            color: #3d444d;
+            letter-spacing: 1px;
+            margin-left: auto;
+        }
+
+        .country-article {
+            color: #6e7681;
+            font-size: 12px;
+            line-height: 1.9;
+        }
+
+        .country-article p {
+            margin-bottom: 10px;
+        }
+
+        .country-article p:last-child {
+            margin-bottom: 0;
+        }
+
+        .country-article .highlight {
+            color: #00ff88;
+            font-weight: 500;
+        }
+
+        .country-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(0, 255, 136, 0.08);
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .meta-label {
+            font-size: 9px;
+            color: #3d444d;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .meta-value {
+            font-size: 11px;
+            color: #484f58;
+        }
+
+        /* ── History Panel ── */
+        .history-panel {
+            display: none;
+            margin-top: 14px;
+            background: #0d1117;
+            border: 1px solid rgba(0, 255, 136, 0.12);
+            border-radius: 10px;
+            overflow: hidden;
+            animation: fadeIn 0.35s ease;
+        }
+
+        .history-panel.visible {
+            display: block;
+        }
+
+        .history-panel-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            background: rgba(0, 255, 136, 0.04);
+            border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+        }
+
+        .history-panel-title {
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            color: #00ff88;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .history-panel-flag {
+            font-size: 16px;
+        }
+
+        .history-panel-body {
+            padding: 18px 20px;
+        }
+
+        .history-loading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: #3d444d;
+            letter-spacing: 1px;
+        }
+
+        .history-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(0, 255, 136, 0.15);
+            border-top-color: #00ff88;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .history-error {
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: #ff3b30;
+            letter-spacing: 1px;
+        }
+
+        .history-content {
+            font-family: 'Fira Code', monospace;
+            font-size: 11.5px;
+            color: #6e7681;
+            line-height: 1.95;
+        }
+
+        .history-content .h-section {
+            margin-bottom: 16px;
+        }
+
+        .history-content .h-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .history-content .h-label {
+            font-size: 9px;
+            color: #00ff88;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .history-content .h-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(0, 255, 136, 0.08);
+        }
+
+        .history-content .h-text {
+            color: #6e7681;
+            font-size: 11.5px;
+            line-height: 1.9;
+        }
+
+        .history-content .h-text .kw {
+            color: #00ff88;
+        }
+
+        .history-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .timeline-year {
+            font-size: 10px;
+            color: #00ff88;
+            min-width: 52px;
+            padding-top: 1px;
+            letter-spacing: 1px;
+        }
+
+        .timeline-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(0, 255, 136, 0.35);
+            margin-top: 4px;
+            flex-shrink: 0;
+        }
+
+        .timeline-text {
+            font-size: 11px;
+            color: #6e7681;
+            line-height: 1.7;
+        }
+
+        /* ── Labs Grid ── */
+        .labs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        /* ── Lab Card ── */
+        .lab-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 14px;
+            padding: 1.35rem 1.15rem 1.15rem;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: block;
+            transition: border-color 0.2s, transform 0.2s, background 0.2s;
+        }
+
+        .lab-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .lab-card:hover {
+            border-color: var(--accent-dim);
+            background: #1c2128;
+            transform: translateY(-3px);
+        }
+
+        .lab-card:hover::after {
+            opacity: 1;
+        }
+
+        .lab-num {
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            color: #3d444d;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 0.85rem;
+        }
+
+        .lab-icon-wrap {
+            width: 42px;
+            height: 42px;
+            border-radius: 11px;
+            background: var(--accent-bg);
+            border: 1px solid var(--accent-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.9rem;
+        }
+
+        .lab-icon-wrap i {
+            font-size: 21px;
+            color: var(--accent);
+        }
+
+        .lab-title {
+            font-family: 'Fira Code', monospace;
+            font-size: 12px;
+            font-weight: 500;
+            color: #e6edf3;
+            line-height: 1.5;
+            margin-bottom: 0.55rem;
+        }
+
+        .lab-tag {
+            display: inline-block;
+            font-size: 10px;
+            font-family: 'Fira Code', monospace;
+            color: var(--accent);
+            background: var(--accent-bg);
+            border: 1px solid var(--accent-dim);
+            border-radius: 4px;
+            padding: 2px 8px;
+            margin-bottom: 0.85rem;
+        }
+
+        .lab-diff {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .diff-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--diff-color);
+        }
+
+        .diff-label {
+            font-size: 10px;
+            font-family: 'Fira Code', monospace;
+            color: #484f58;
+        }
+
+        .lab-arrow {
+            position: absolute;
+            bottom: 1.1rem;
+            right: 1.1rem;
+            font-size: 15px;
+            color: #3d444d;
+            transition: color 0.2s, transform 0.2s;
+        }
+
+        .lab-card:hover .lab-arrow {
+            color: var(--accent);
+            transform: translate(2px, -2px);
+        }
+
+        /* ── Legend ── */
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: #6e7681;
+        }
+
+        .legend-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        /* ── Hint ── */
+        .hint-wrapper {
+            position: relative;
+            display: inline-flex;
+        }
+
+        .hint-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            border-radius: 8px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: #00ff88;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .hint-btn:hover {
+            background: rgba(0, 255, 136, 0.15);
+            border-color: rgba(0, 255, 136, 0.5);
+            box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.08);
+        }
+
+        .hint-tooltip {
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #161b22;
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            border-radius: 10px;
+            padding: 12px 16px;
+            min-width: 240px;
+            max-width: 300px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: #484f58;
+            line-height: 1.7;
+            z-index: 99;
+        }
+
+        .hint-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: rgba(0, 255, 136, 0.25);
+        }
+
+        .hint-tooltip::before {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #161b22;
+            z-index: 1;
+        }
+
+        .hint-title {
+            color: #00ff88;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hint-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #00ff88;
+            display: inline-block;
+        }
+
+        .hint-text {
+            width: 400px;
+            font-size: 12px;
+            color: #ff3b30;
+            font-weight: bold;
+        }
+
+        .hint-wrapper:hover .hint-tooltip {
+            opacity: 1;
+        }
+
+        /* ── Footer ── */
+        .footer {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            margin-top: auto;
+            padding: 2rem 1.5rem 1.5rem;
+            border-top: 1px solid rgba(0, 255, 136, 0.08);
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            color: #3d444d;
+            letter-spacing: 1.5px;
+            text-align: center;
+        }
+
+        .footer-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 980px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .footer-divider::before,
+        .footer-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.12), transparent);
+        }
+
+        .footer-divider span {
+            color: rgba(0, 255, 136, 0.35);
+            letter-spacing: 3px;
+            font-size: 10px;
+        }
+
+        .footer-link {
+            color: #3d444d;
+            text-decoration: none;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            font-size: 10px;
+            transition: color 0.2s;
+        }
+
+        .footer-link:hover {
+            color: #00ff88;
+        }
+
+        .footer-copy {
+            line-height: 2.2;
+        }
+
+        .footer-copy .accent {
+            color: #00ff88;
+        }
+
+        .footer-copy .heart {
+            color: #ff3b30;
+        }
+
+        .footer-copy .dim {
+            color: #2a2f38;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.7rem;
+            }
+
+            .labs-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+
+        <!-- Header -->
+        <header class="header">
+            <div class="header-badge">
+                <span class="badge-dot"></span>
+                XSS Training Environment
+            </div>
+            <h1>&lt;<span class="accent">DOM XSS in document.write</span> / Labs&gt;</h1>
+            <p>// Cross-Site Scripting · Hands-on Practice</p>
+        </header>
+
+        <!-- Search / Country Form -->
+        <div class="stats-bar">
+            <div class="search-wrapper">
+                <form id="form" method="get">
+                    <span class="search-prefix">$&gt;</span>
+                    <script>
+                        document.write('<select name="country" id="country">');
+                        var country = ['🇮🇶 Iraq', '🇯🇵 Japan', '🇧🇷 Brazil', '🇪🇬 Egypt', '🇩🇪 Germany'];
+                        var query = (new URLSearchParams(document.location.search)).get('country');
+                        if (query) {
+                            document.write('<option selected>' + query + '</option>');
+                        }
+                        for (var i = 0; i < country.length; i++) {
+                            if (query === country[i]) continue;
+                            document.write('<option>' + country[i] + '</option>');
+                        }
+                        document.write('</select>');
+                    </script>
+                    <input type="submit" value="// RUN" id="run" />
+                </form>
+
+                <!-- Country Result Box -->
+                <div class="country-result" id="country-result">
+                    <div class="country-result-header">
+                        <span class="country-flag" id="result-flag"></span>
+                        <span class="country-name" id="result-name"></span>
+                        <span class="country-slug" id="result-slug"></span>
+                    </div>
+                    <div class="country-article" id="result-article"></div>
+                    <div class="country-meta" id="result-meta"></div>
+                </div>
+
+                <!-- History Panel -->
+                <div class="history-panel" id="history-panel">
+                    <div class="history-panel-header">
+                        <span class="history-panel-flag" id="history-flag"></span>
+                        <span class="history-panel-title">// Historical Overview</span>
+                    </div>
+                    <div class="history-panel-body" id="history-body">
+                        <div class="history-loading" id="history-loading">
+                            <span class="history-spinner"></span>
+                            <span>fetching historical data...</span>
+                        </div>
+                        <div class="history-content" id="history-content" style="display:none;"></div>
+                        <div class="history-error" id="history-error" style="display:none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hint -->
+        <div style="display:flex; justify-content:center; margin-top: 1.5rem;">
+            <div class="hint-wrapper">
+                <button class="hint-btn">
+                    <i class="ti ti-bulb" style="font-size:14px;" aria-hidden="true"></i>
+                    // Hint
+                </button>
+                <div class="hint-tooltip">
+                    <div class="hint-title"><span class="hint-dot"></span> hint</div>
+                    <div class="hint-text">payload:<br>
+                        <code>&#x3c;&#x2f;&#x73;&#x65;&#x6c;&#x65;&#x63;&#x74;&#x3e;&#x3c;&#x69;&#x6d;&#x67;&#x20;&#x73;&#x72;&#x63;&#x3d;&#x61;&#x20;&#x6f;&#x6e;&#x65;&#x72;&#x72;&#x6f;&#x72;&#x3d;&#x61;&#x6c;&#x65;&#x72;&#x74;&#x28;&#x29;&#x3e;</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-copy">
+            <span class="accent">©</span> 2026 &nbsp;<span class="dim">·</span>&nbsp; Made with <span
+                class="heart">♥</span> by <span class="accent">the0x</span>
+            <br>
+            <span class="accent">//</span> Educational purposes only &nbsp;<span class="dim">·</span>&nbsp; Use
+            responsibly
+            <br>
+            <a href="https://www.facebook.com/AbuFah3d94" target="_blank" class="footer-link"
+                style="margin-top: 6px; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="ti ti-brand-facebook" style="font-size: 13px;"></i> // Facebook
+            </a>
+        </div>
+    </footer>
+
+    <script>
+        const historyData = {
+            '🇮🇶 Iraq': {
+                flag: '🇮🇶',
+                name: 'Iraq',
+                capital: 'Baghdad',
+                founded: '1932',
+                population: '~42M',
+                timeline: [
+                    { year: '3500 BC', text: 'Sumer civilization emerges — one of the earliest known human civilizations — in southern Mesopotamia.' },
+                    { year: '539 BC', text: 'Cyrus the Great conquers Babylon, ending the Neo-Babylonian Empire.' },
+                    { year: '762 AD', text: 'Baghdad founded as the capital of the Abbasid Caliphate, becoming the center of the Islamic Golden Age.' },
+                    { year: '1258', text: 'Mongol invasion under Hulagu Khan; Baghdad is sacked and the Abbasid Caliphate falls.' },
+                    { year: '1534', text: 'Ottoman Empire takes control of Iraq, beginning nearly four centuries of Ottoman rule.' },
+                    { year: '1920', text: 'Iraq becomes a British mandate following World War I and the collapse of the Ottoman Empire.' },
+                    { year: '1932', text: 'Iraq gains independence and joins the League of Nations as a sovereign state.' },
+                    { year: '1958', text: 'Monarchy overthrown in a military coup; the Republic of Iraq is declared.' },
+                    { year: '2003', text: 'US-led invasion topples Saddam Hussein\'s government, beginning a new political era.' },
+                ],
+                summary: 'Iraq, historically known as <span class="kw">Mesopotamia</span> — "land between two rivers" — is widely regarded as the cradle of civilization. Home to the Sumerians, Akkadians, Babylonians, and Assyrians, it gave birth to writing, agriculture, and the first cities. Today it is a federal parliamentary republic with vast oil reserves.',
+            },
+            '🇯🇵 Japan': {
+                flag: '🇯🇵',
+                name: 'Japan',
+                capital: 'Tokyo',
+                founded: '660 BC',
+                population: '~125M',
+                timeline: [
+                    { year: '660 BC', text: 'Traditional founding of Japan by Emperor Jimmu, the legendary first emperor.' },
+                    { year: '710 AD', text: 'Nara becomes Japan\'s first permanent capital; Buddhism flourishes.' },
+                    { year: '1192', text: 'Minamoto no Yoritomo establishes the first shogunate in Kamakura, beginning feudal rule.' },
+                    { year: '1603', text: 'Tokugawa Ieyasu unifies Japan; Edo (Tokyo) becomes the seat of power for 265 years.' },
+                    { year: '1853', text: 'Commodore Perry\'s "Black Ships" force Japan to open trade with the West.' },
+                    { year: '1868', text: 'Meiji Restoration — Emperor Meiji takes power; Japan rapidly modernizes and industrializes.' },
+                    { year: '1945', text: 'Japan surrenders in World War II following atomic bombings of Hiroshima and Nagasaki.' },
+                    { year: '1964', text: 'Tokyo hosts the Summer Olympics; Japan emerges as a major economic power.' },
+                    { year: '1991', text: 'Economic bubble bursts, beginning a decade of stagnation known as the "Lost Decade".' },
+                ],
+                summary: 'Japan is an island nation in East Asia with one of the world\'s oldest continuous civilizations. From the age of the <span class="kw">samurai</span> and imperial courts to becoming a global leader in technology and culture, Japan\'s history spans over 2,600 years of recorded history. It is known for its unique blend of ancient tradition and ultra-modern innovation.',
+            },
+            '🇧🇷 Brazil': {
+                flag: '🇧🇷',
+                name: 'Brazil',
+                capital: 'Brasília',
+                founded: '1822',
+                population: '~215M',
+                timeline: [
+                    { year: '1500', text: 'Portuguese explorer Pedro Álvares Cabral lands in Brazil, claiming it for Portugal.' },
+                    { year: '1549', text: 'Salvador becomes the first capital of Portuguese colonial Brazil.' },
+                    { year: '1630', text: 'Dutch West India Company seizes northeastern Brazil, controlling it until 1654.' },
+                    { year: '1763', text: 'Colonial capital moved to Rio de Janeiro due to gold mining boom in Minas Gerais.' },
+                    { year: '1808', text: 'Portuguese royal family flees Napoleon and arrives in Rio, making it the center of the empire.' },
+                    { year: '1822', text: 'Prince Pedro I declares Brazilian independence from Portugal on September 7th.' },
+                    { year: '1888', text: 'Brazil abolishes slavery — the last country in the Americas to do so.' },
+                    { year: '1960', text: 'New capital Brasília is inaugurated, replacing Rio de Janeiro as the political center.' },
+                    { year: '2016', text: 'Rio de Janeiro hosts the Summer Olympics — first in South America.' },
+                ],
+                summary: 'Brazil is the largest country in South America and the <span class="kw">fifth-largest</span> in the world. A melting pot of Indigenous, African, and European cultures, Brazil is known for its biodiversity in the Amazon rainforest, its vibrant carnival celebrations, and its dominant position in football (soccer). It is the only Portuguese-speaking nation in the Americas.',
+            },
+            '🇪🇬 Egypt': {
+                flag: '🇪🇬',
+                name: 'Egypt',
+                capital: 'Cairo',
+                founded: '3100 BC',
+                population: '~104M',
+                timeline: [
+                    { year: '3100 BC', text: 'Upper and Lower Egypt are unified under King Menes, forming one of the world\'s first nation-states.' },
+                    { year: '2560 BC', text: 'The Great Pyramid of Giza is completed under Pharaoh Khufu.' },
+                    { year: '332 BC', text: 'Alexander the Great conquers Egypt and founds Alexandria.' },
+                    { year: '30 BC', text: 'Cleopatra VII dies; Egypt becomes a Roman province.' },
+                    { year: '641 AD', text: 'Arab Muslim armies conquer Egypt; Arabic gradually replaces Coptic as the main language.' },
+                    { year: '1517', text: 'Ottoman Empire absorbs Egypt after defeating the Mamluk Sultanate.' },
+                    { year: '1798', text: 'Napoleon Bonaparte invades Egypt, sparking European interest in Egyptology.' },
+                    { year: '1869', text: 'The Suez Canal opens, transforming global trade routes.' },
+                    { year: '1952', text: 'Egyptian Revolution overthrows the monarchy; republic is established under Naguib and later Nasser.' },
+                ],
+                summary: 'Egypt is one of the oldest civilizations in human history, dating back over <span class="kw">5,000 years</span>. Straddling Africa and Asia along the Nile River, ancient Egypt built monumental architecture, developed early writing (hieroglyphics), and produced one of the most studied cultures in archaeology. Modern Egypt is a major power in the Arab world with Cairo as the largest city in Africa and the Middle East.',
+            },
+            '🇩🇪 Germany': {
+                flag: '🇩🇪',
+                name: 'Germany',
+                capital: 'Berlin',
+                founded: '1871',
+                population: '~84M',
+                timeline: [
+                    { year: '9 AD', text: 'Germanic tribes defeat three Roman legions at the Battle of Teutoburg Forest, halting Roman expansion.' },
+                    { year: '800', text: 'Charlemagne is crowned Emperor of the Romans, creating the Frankish Empire across much of Europe.' },
+                    { year: '1517', text: 'Martin Luther publishes his 95 Theses, sparking the Protestant Reformation.' },
+                    { year: '1618', text: 'Thirty Years\' War begins — one of the most destructive conflicts in European history.' },
+                    { year: '1871', text: 'Otto von Bismarck unifies German states into the German Empire after the Franco-Prussian War.' },
+                    { year: '1914', text: 'Germany enters World War I; the war ends in 1918 with German defeat and the fall of the Empire.' },
+                    { year: '1933', text: 'Adolf Hitler rises to power; the Nazi regime begins its reign until 1945.' },
+                    { year: '1961', text: 'Berlin Wall is erected, dividing East and West Germany during the Cold War.' },
+                    { year: '1990', text: 'German reunification — East and West Germany are formally merged into one nation on October 3rd.' },
+                ],
+                summary: 'Germany sits at the heart of Europe and has played a defining role in the continent\'s history. From the <span class="kw">Holy Roman Empire</span> to the Reformation, from the World Wars to European integration, Germany\'s story is inseparable from Europe\'s. Today it is the largest economy in Europe, a founding member of the EU, and a leading voice in international diplomacy.',
+            }
+        };
+
+        function renderHistory(countryKey) {
+            const panel = document.getElementById('history-panel');
+            const flagEl = document.getElementById('history-flag');
+            const body = document.getElementById('history-body');
+            const loading = document.getElementById('history-loading');
+            const content = document.getElementById('history-content');
+            const error = document.getElementById('history-error');
+
+            panel.classList.add('visible');
+            loading.style.display = 'flex';
+            content.style.display = 'none';
+            error.style.display = 'none';
+
+            // Simulate async data loading for terminal feel
+            setTimeout(function () {
+                var data = historyData[countryKey];
+                loading.style.display = 'none';
+
+                if (!data) {
+                    error.style.display = 'block';
+                    error.textContent = '// ERROR: no historical data found for "' + countryKey + '"';
+                    return;
+                }
+
+                flagEl.textContent = data.flag;
+
+                var timelineHTML = data.timeline.map(function (item) {
+                    return '<div class="timeline-item"><span class="timeline-year">' + item.year + '</span><span class="timeline-dot"></span><span class="timeline-text">' + item.text + '</span></div>';
+                }).join('');
+
+                content.innerHTML =
+                    '<div class="h-section">' +
+                    '<div class="h-label">// overview</div>' +
+                    '<div class="h-text">' + data.summary + '</div>' +
+                    '</div>' +
+                    '<div class="h-section">' +
+                    '<div class="h-label">// key events</div>' +
+                    '<div class="history-timeline">' + timelineHTML + '</div>' +
+                    '</div>' +
+                    '<div class="h-section">' +
+                    '<div class="h-label">// quick stats</div>' +
+                    '<div style="display:flex; gap:24px; flex-wrap:wrap; margin-top:4px;">' +
+                    '<div class="meta-item"><span class="meta-label">capital</span><span class="meta-value" style="color:#6e7681;">' + data.capital + '</span></div>' +
+                    '<div class="meta-item"><span class="meta-label">founded</span><span class="meta-value" style="color:#6e7681;">' + data.founded + '</span></div>' +
+                    '<div class="meta-item"><span class="meta-label">population</span><span class="meta-value" style="color:#6e7681;">' + data.population + '</span></div>' +
+                    '</div>' +
+                    '</div>';
+
+                content.style.display = 'block';
+            }, 600);
+        }
+
+        window.addEventListener('DOMContentLoaded', function () {
+            var query = (new URLSearchParams(document.location.search)).get('country');
+            if (query && historyData[query]) {
+                renderHistory(query);
+            }
+
+            document.getElementById('form').addEventListener('submit', function (e) {
+                var sel = document.getElementById('country');
+                if (sel && historyData[sel.value]) {
+                    // Let the form navigate normally, history renders on load
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
