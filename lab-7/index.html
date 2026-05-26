@@ -648,7 +648,7 @@
             resultQuery.textContent = query;
             resultBox.classList.add('visible');
         }
-        back.href = `javascript:fetch('/analytics',{method:'post',body:'/${query}'}).finally(_=> document.location='../')`;
+        back.href = `javascript:fetch('/analytics',{method:'post',body:'/${query}'}).finally(_=> document.location='')`;
     </script>
 </body>
 
