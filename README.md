@@ -14,6 +14,7 @@ How XSS vulnerabilities are introduced in real applications
 How client-side and server-side sinks behave
 How input sanitization and filtering can be bypassed
 How context (HTML, attribute, JS, SVG) affects exploitation
+
 🧠 XSS Categories Covered
 Type	Description
 Reflected XSS	User input is immediately returned in the HTTP response without proper sanitization
@@ -21,6 +22,7 @@ DOM-Based XSS	Vulnerability exists in client-side JavaScript sinks
 Filter Evasion XSS	Input sanitization bypass techniques targeting HTML/JS filters
 Contextual XSS	Injection depending on HTML attributes, JS strings, or URL contexts
 Advanced Injection Vectors	SVG, iframe, and JavaScript URI-based injection techniques
+
 🗂️ Lab Structure
 🟢 Easy Level — Fundamentals
 
@@ -47,6 +49,7 @@ Focus: Context-aware injection and restricted environments
 8	Attribute Context XSS (href Injection)	Attribute	HTML attribute breaking
 9	SVG-based Script Injection	SVG	Event-based execution vectors
 10	Iframe Data URI Injection	iframe	sandbox & URI-based execution
+
 🎯 Learning Objectives
 
 By completing this lab series, you will gain practical experience in:
@@ -57,6 +60,7 @@ Exploiting weak or broken sanitization mechanisms
 Bypassing common blacklist-based filters
 Crafting payloads for restricted environments
 Recognizing real-world insecure coding patterns
+
 ⚠️ Disclaimer
 
 This project is strictly intended for educational and research purposes only.
@@ -78,12 +82,14 @@ Recommended setup:
 Modern web browser (Chrome / Firefox)
 Developer Tools enabled
 Basic understanding of HTML & JavaScript
+
 🧪 Recommended Approach
 Start from Easy → Medium → Hard
 Inspect source code and DOM changes using DevTools
 Analyze input reflection points carefully
 Test payload variations in different contexts
 Understand why each payload works, not just how
+
 📚 Suggested Knowledge Base
 
 Before attempting advanced labs, it is recommended to understand:
@@ -92,6 +98,7 @@ HTML injection basics
 JavaScript execution contexts
 DOM manipulation fundamentals
 Browser encoding behavior (HTML/URL/JS encoding)
+
 🏁 Author Notes
 
 This lab series was built to simulate real-world insecure patterns often found in:
