@@ -1,7 +1,3 @@
-تمام — هذا نفس المحتوى لكن **منسّق بشكل احترافي لـ GitHub README** مع تحسين المسافات والجداول والعناوين بحيث يظهر clean وpro:
-
----
-
 # 🛡️ XSS Labs — Cross-Site Scripting Training Environment
 
 A structured, hands-on security lab designed to help developers, penetration testers, and security researchers understand and practice real-world **Cross-Site Scripting (XSS)** vulnerabilities in a safe and controlled environment.
